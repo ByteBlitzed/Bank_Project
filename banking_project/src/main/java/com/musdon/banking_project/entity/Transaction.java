@@ -1,8 +1,9 @@
 package com.musdon.banking_project.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
+
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -13,5 +14,15 @@ import lombok.*;
 @Table(name = "transactions")
 public class Transaction {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String transactionId;
+
+    private String transactionType;
+
+    private BigDecimal amount;
+
+    private String accountNumber;
+
+    private String status;
 }

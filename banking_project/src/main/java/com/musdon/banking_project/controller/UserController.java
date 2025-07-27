@@ -47,12 +47,12 @@ public class UserController {
 
     @PostMapping("/credit")
     public BankResponse credit(@RequestBody CreditDebitRequest request){
-        return userService.creditAccount(request);
+        return userService.creditAccount(request, true);
     }
 
     @PostMapping("/debit")
     public BankResponse debit(@RequestBody CreditDebitRequest request){
-        return userService.debitAccount(request);
+        return userService.debitAccount(request, true);
     }
 
     @PostMapping("/transfer")

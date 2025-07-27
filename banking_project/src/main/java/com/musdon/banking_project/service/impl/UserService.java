@@ -8,9 +8,9 @@ public interface UserService {
 
     BankResponse balanceEnquiry (EnquiryRequest enquiryRequest);
 
-    BankResponse creditAccount(CreditDebitRequest creditRequest);
+    BankResponse creditAccount(CreditDebitRequest creditRequest,boolean saveTransaction);
 
-    BankResponse debitAccount(CreditDebitRequest debitRequest);
+    BankResponse debitAccount(CreditDebitRequest debitRequest, boolean saveTransaction);
 
     BankResponse transferAccount(TransferRequest request);
 

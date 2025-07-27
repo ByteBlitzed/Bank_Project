@@ -18,6 +18,9 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private TransactionService transactionService;
+
     @Override
     public BankResponse createAccount(UserRequest userRequest) {
         /*Creating an Account is saving a new user in db*/
@@ -98,7 +101,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public BankResponse creditAccount(CreditDebitRequest request) {
+    public BankResponse creditAccount(CreditDebitRequest request, boolean saveTransaction) {
         Optional<User> user = userRepository.findByAccountNumber(request.getAccountNumber());
         if(user.isPresent()){
             user.get().setAccountBalance(user.get().getAccountBalance().add(request.getAmount()));
@@ -117,7 +120,20 @@ public class UserServiceImpl implements UserService {
                     .attachment(null)
                     .build();
 
-            emailService.sendEmailAlert(creditAlerts );
+            emailService.sendEmailAlert(creditAlerts);
+
+            //save Transaction
+            if(saveTransaction){
+                TransactionDto TDto  = TransactionDto.builder()
+                        .transactionType("CREDIT")
+                        .accountNumber(user.get().getAccountNumber())
+                        .amount(request.getAmount())
+                        .status("SUCCESS")
+                        .build();
+
+                transactionService.saveTransaction(TDto);
+            }
+
 
             return BankResponse.builder()
                     .responseCode(AccountUtils.ACCOUNT_CREDITED_SUCCESS)
@@ -133,7 +149,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public BankResponse debitAccount(CreditDebitRequest debitRequest) {
+    public BankResponse debitAccount(CreditDebitRequest debitRequest, boolean saveTransaction) {
         Optional<User> user = userRepository.findByAccountNumber(debitRequest.getAccountNumber());
         if(user.isPresent()){
             BigDecimal currBalance = user.get().getAccountBalance();
@@ -156,6 +172,17 @@ public class UserServiceImpl implements UserService {
                         .build();
 
                 emailService.sendEmailAlert(debitAlert);
+
+                if(saveTransaction){
+                    TransactionDto TDto  = TransactionDto.builder()
+                            .transactionType("DEBIT")
+                            .accountNumber(user.get().getAccountNumber())
+                            .amount(debitRequest.getAmount())
+                            .status("SUCCESS")
+                            .build();
+
+                    transactionService.saveTransaction(TDto);
+                }
 
                 return BankResponse.builder()
                         .responseCode(AccountUtils.ACCOUNT_DEBITED_SUCCESS)
@@ -191,14 +218,14 @@ public class UserServiceImpl implements UserService {
                         .amount(request.getAmount())
                         .build();
 
-                debitAccount(debitRequest);
+                debitAccount(debitRequest, false);
 
                 CreditDebitRequest creditRequest = CreditDebitRequest.builder()
                         .accountNumber(request.getCreditedAccountNumber())
                         .amount(request.getAmount())
                         .build();
 
-                creditAccount(creditRequest);
+                creditAccount(creditRequest, false);
 
                 AccountInfo accountInfo = AccountInfo.builder()
                         .accountName(sender.get().getFirstName() + " " + sender.get().getLastName())
@@ -223,6 +250,15 @@ public class UserServiceImpl implements UserService {
                         .build();
 
                 emailService.sendEmailAlert(creditAlert);
+
+                TransactionDto TDto  = TransactionDto.builder()
+                        .transactionType("TRANSFER")
+                        .accountNumber(sender.get().getAccountNumber())
+                        .amount(request.getAmount())
+                        .status("SUCCESS")
+                        .build();
+
+                transactionService.saveTransaction(TDto);
 
 
                 return BankResponse.builder()
