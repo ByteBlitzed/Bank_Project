@@ -4,6 +4,7 @@ import com.musdon.banking_project.dto.*;
 import com.musdon.banking_project.entity.User;
 import com.musdon.banking_project.repository.UserRepository;
 import com.musdon.banking_project.utils.AccountUtils;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -204,6 +205,7 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
+    @Transactional
     @Override
     public BankResponse transferAccount(TransferRequest request) {
         Optional<User> receiver = userRepository.findByAccountNumber(request.creditedAccountNumber);
